@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+backend/.env
+backend/node_modules
 Tasks.txt
 
 # Editor directories and files
