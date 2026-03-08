@@ -1,24 +1,32 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import './App.css'
-import { LoginSignup } from './assets/LoginSignup/loginSignup'
-import HomePage from './assets/HomePage/HomePage' 
-
-function HomeWithLogin() {
-  const navigate = useNavigate();
-  return <HomePage onLoginClick={() => navigate('/login')} />
-}
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Login } from './assets/LoginSignup/Login';
+import { SignUp } from './assets/LoginSignup/SignUp';
+import MainLayout from './layout/MainLayout';
+import HomePage from './pages/HomePage';
+import VideoSearchPage from './pages/VideoSearchPage';
+import ImageSearchPage from './pages/ImageSearchPage';
+import NewsSearchPage from './pages/NewsSearchPage';
+import AboutPage from './pages/AboutPage';
 
 function App() {
-  
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomeWithLogin />} />
-        <Route path="/login" element={<LoginSignup />} />
+        {/* Main Application Routes with Layout */}
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="videos" element={<VideoSearchPage />} />
+          <Route path="images" element={<ImageSearchPage />} />
+          <Route path="news" element={<NewsSearchPage />} />
+          <Route path="about" element={<AboutPage />} />
+        </Route>
+
+        {/* Auth Routes without Layout */}
+        <Route path="/login" element={<Login/>} />
+        <Route path="/signup" element={<SignUp/>} />
       </Routes>
     </Router>
   )
 }
 
-export default App
+export default App;
