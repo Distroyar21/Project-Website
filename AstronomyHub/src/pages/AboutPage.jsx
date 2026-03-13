@@ -10,7 +10,7 @@ const AboutPage = () => {
         className="text-center mb-20"
       >
         <span className="text-blue-400 font-bold uppercase tracking-widest text-sm">About Our Mission</span>
-        <h1 className="text-5xl font-extrabold header-title !text-6xl mt-4 mb-8">Democratizing Space</h1>
+        <h1 className="text-4xl font-extrabold header-title !text-6xl mt-4 mb-8 uppercase">Exploring Space Together</h1>
         <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
           AstronomyHub is dedicated to making the wonders of the universe accessible to everyone, from amateur stargazers to professional astronomers.
         </p>
@@ -24,7 +24,7 @@ const AboutPage = () => {
         >
           <h2 className="text-3xl font-bold text-white mb-6">Our Vision</h2>
           <p className="text-gray-400 leading-relaxed mb-6">
-            We believe that looking at the stars unites us. By providing tools to search for images, videos, and the latest news from space agencies like NASA, we hope to inspire the next generation of explorers.
+            We believe that every one should be eager to know their existance and surrounding things, from an atom to the biggest black holes present in the universe...
           </p>
           <p className="text-gray-400 leading-relaxed">
             Every discovery counts. Whether it's a new exoplanet or a beautiful nebula, we want to bring it straight to your screen with a premium, immersive experience.
@@ -46,15 +46,6 @@ const AboutPage = () => {
              />
           </div>
         </motion.div>
-      </div>
-
-      <div className="bg-white/5 rounded-3xl p-12 text-center border border-white/10">
-        <h2 className="text-3xl font-bold text-white mb-4">Join the Stargazers</h2>
-        <p className="text-gray-400 mb-8 max-w-lg mx-auto">Subscribe to our newsletter for weekly cosmic updates and newly discovered celestial objects.</p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-          <input className="bg-black/40 border border-white/10 rounded-full px-6 py-3 text-white outline-none focus:border-blue-500 transition-all flex-grow" placeholder="Email address" />
-          <button className="btn-search whitespace-nowrap px-8">Subscribe</button>
-        </div>
       </div>
     </div>
   );

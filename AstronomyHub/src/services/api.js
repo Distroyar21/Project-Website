@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5005/api';
 
 export const fetchApod = async () => {
   try {
@@ -11,9 +11,16 @@ export const fetchApod = async () => {
   }
 };
 
-export const fetchNasaImages = async (query = 'astronomy', page = 1) => {
+export const fetchNasaImages = async (query = 'astronomy', page = 1, options = {}) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/nasa/images?q=${query}&page=${page}`);
+    const { mediaType, yearStart, yearEnd } = options;
+    let url = `${API_BASE_URL}/nasa/images?q=${query}&page=${page}`;
+    
+    if (mediaType) url += `&media_type=${mediaType}`;
+    if (yearStart) url += `&year_start=${yearStart}`;
+    if (yearEnd) url += `&year_end=${yearEnd}`;
+
+    const response = await fetch(url);
     if (!response.ok) throw new Error('NASA API error');
     const data = await response.json();
     return data.collection.items;
@@ -23,23 +30,37 @@ export const fetchNasaImages = async (query = 'astronomy', page = 1) => {
   }
 };
 
+
+let newsCache = null;
+
 export const fetchNasaNews = async () => {
+  if (newsCache) return newsCache;
+  
   try {
     const response = await fetch(`${API_BASE_URL}/nasa/images?q=mission&media_type=image&year_start=2024`);
     if (!response.ok) throw new Error('NASA News error');
     const data = await response.json();
-    return data.collection.items.slice(0, 10);
+    newsCache = data.collection.items.slice(0, 10);
+    return newsCache;
   } catch (error) {
     console.error('Error fetching NASA news:', error);
     return [];
   }
 };
 
-export const fetchYoutubeVideos = async (query = 'astronomy exploration') => {
+
+let videoCache = {};
+
+export const fetchYoutubeVideos = async (query = 'astronomy exploration', lang = 'en') => {
+  const cacheKey = `${query}_${lang}`;
+  if (videoCache[cacheKey]) return videoCache[cacheKey];
+
   try {
-    const response = await fetch(`${API_BASE_URL}/youtube/videos?q=${encodeURIComponent(query)}`);
+    const response = await fetch(`${API_BASE_URL}/youtube/videos?q=${encodeURIComponent(query)}&lang=${lang}`);
     if (!response.ok) throw new Error('YouTube API error');
-    return await response.json();
+    const data = await response.json();
+    videoCache[cacheKey] = data;
+    return data;
   } catch (error) {
     console.error('Error fetching YouTube videos:', error);
     return [
@@ -78,4 +99,61 @@ export const googleLogin = async (credential) => {
     body: JSON.stringify({ credential })
   });
   return await response.json();
+};
+
+export const analyzeNews = async (text) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/news/analyze`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify({ text })
+    });
+    if (!response.ok) throw new Error('AI Analysis error');
+    return await response.json();
+  } catch (error) {
+    console.error('Error analyzing news:', error);
+    return null;
+  }
+};
+
+export const fetchSuggestions = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return { suggestions: [] };
+    const response = await fetch(`${API_BASE_URL}/user/suggestions`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error('Suggestions error');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    return { suggestions: [] };
+  }
+};
+
+export const chatWithAI = async (message) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ai/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+    
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+      const data = await response.json();
+      if (!response.ok) return { reply: data.reply || `Cosmic error: ${response.status}` };
+      return data;
+    } else {
+      const text = await response.text();
+      return { reply: `Non-JSON Response from backend: ${text.slice(0, 50)}...` };
+    }
+  } catch (error) {
+    console.error('Error chatting with AI:', error);
+    return { reply: `Connection Failed: Could not reach the backend server at ${API_BASE_URL}. Ensure the Node.js server is running.` };
+  }
 };

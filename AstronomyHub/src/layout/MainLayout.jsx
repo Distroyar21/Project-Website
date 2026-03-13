@@ -9,13 +9,13 @@ const MainLayout = () => {
   const [stars, setStars] = useState([]);
 
   useEffect(() => {
-    const starCount = 100;
+    const starCount = 120;
     const newStars = Array.from({ length: starCount }).map((_, i) => ({
       id: i,
       top: `${Math.random() * 100}%`,
       left: `${Math.random() * 100}%`,
       size: `${Math.random() * 3 + 2}px`, 
-      duration: `${Math.random() * 4 + 2}s`,
+      duration: `${Math.random() * 3 + 2}s`,
       delay: `${Math.random() * 5}s`
     }));
     setStars(newStars);
@@ -36,7 +36,7 @@ const MainLayout = () => {
               height: star.size,
               '--duration': star.duration,
               animationDelay: star.delay,
-              willChange: 'transform, opacity'
+              willChange: 'opacity'
             }}
           />
         ))}

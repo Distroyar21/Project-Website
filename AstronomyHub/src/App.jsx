@@ -6,7 +6,9 @@ import HomePage from './pages/HomePage';
 import VideoSearchPage from './pages/VideoSearchPage';
 import ImageSearchPage from './pages/ImageSearchPage';
 import NewsSearchPage from './pages/NewsSearchPage';
+import SuggestionsPage from './pages/SuggestionsPage';
 import AboutPage from './pages/AboutPage';
+import AIChatPage from './pages/AIChatPage';
 
 function App() {
   return (
@@ -18,7 +20,9 @@ function App() {
           <Route path="videos" element={<VideoSearchPage />} />
           <Route path="images" element={<ImageSearchPage />} />
           <Route path="news" element={<NewsSearchPage />} />
+          <Route path="suggestions" element={<SuggestionsPage />} />
           <Route path="about" element={<AboutPage />} />
+          {/* <Route path="chat" element={<AIChatPage />} /> */}
         </Route>
 
         {/* Auth Routes without Layout */}

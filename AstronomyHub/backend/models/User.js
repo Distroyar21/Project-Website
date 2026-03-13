@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
     title: String,
     thumbnail: String,
     dateSaved: { type: Date, default: Date.now }
-  }]
+  }],
+  interests: [{ type: String }]
 });
 
 // Hash password before saving

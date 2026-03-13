@@ -21,7 +21,7 @@ const Footer = () => {
             <h2 className="text-2xl font-bold header-title !text-3xl">AstronomyHub</h2>
           </div>
           <p className="text-gray-400 max-w-md leading-relaxed">
-            Exploring the final frontier. Our mission is to provide the most comprehensive 
+            Exploring the dark universe. Our mission is to provide the most comprehensive 
             and breathtaking look into the cosmos through data, news, and imagery.
           </p>
         </div>
@@ -48,7 +48,7 @@ const Footer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 uppercase tracking-widest font-light">
-          <p>© 2026 AstronomyHub Project. All Rights Reserved.</p>
+          <p>© 2025 AstronomyHub. All Rights Reserved.</p>
           <p className="mt-4 md:mt-0">Built for the wonders of the universe</p>
       </div>
     </footer>

@@ -77,7 +77,7 @@ export const Login = () => {
           <div className="h-px bg-white/10 flex-1"></div>
         </div>
 
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center cursor-pointer">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => setError("Google login failed")}

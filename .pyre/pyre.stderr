@@ -1,0 +1,2 @@
+2026-03-11 20:59:05,973 [PID 10216] INFO No binary specified, looking for `pyre.bin` in PATH
+2026-03-11 20:59:05,980 [PID 10216] ERROR Invalid configuration: Cannot locate a Pyre binary to run.
