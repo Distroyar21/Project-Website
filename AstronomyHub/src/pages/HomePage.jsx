@@ -18,7 +18,6 @@ const HomePage = () => {
     <div>
       {/* Hero Section */}
       <section className="flex flex-col items-center text-center mt-10 md:mt-20 px-12 relative mb-20 md:mb-40">
-        {/* Floating Astronaut SVG */}
         <motion.div
           animate={{ 
             y: [0, -20, 0],

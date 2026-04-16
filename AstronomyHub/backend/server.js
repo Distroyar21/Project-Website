@@ -11,8 +11,9 @@ const User = require('./models/User');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// Initialize AI Service URL
-const AI_SERVICE_URL = 'http://localhost:8004';
+// Initialize AI Service URLs
+const AI_SERVICE_URL = 'http://localhost:8004'; // Python Offline
+const GEMINI_SERVICE_URL = 'http://localhost:8002'; // Node Gemini
 
 const app = express();
 app.use(express.json());
@@ -110,7 +111,7 @@ const auth = async (req, res, next) => {
 app.post('/api/ai/analyze', auth, async (req, res) => {
   try {
     const { text } = req.body;
-    
+
     // Call separate AI service
     const response = await axios.post(`${AI_SERVICE_URL}/analyze`, { text });
     const aiData = response.data;
@@ -160,7 +161,7 @@ app.get('/api/user/suggestions', auth, async (req, res) => {
 app.post('/api/ai/refine-search', async (req, res) => {
   try {
     const { query } = req.body;
-    const response = await axios.post(`${AI_SERVICE_URL}/refine-search`, { query });
+    const response = await axios.post(`${GEMINI_SERVICE_URL}/refine-search`, { query });
     res.json(response.data);
   } catch (err) {
     console.error('Refine Search Proxy Error:', err.message);
@@ -172,7 +173,7 @@ app.post('/api/ai/refine-search', async (req, res) => {
 app.post('/api/ai/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
-    const response = await axios.post(`${AI_SERVICE_URL}/chat`, { message, history });
+    const response = await axios.post(`${GEMINI_SERVICE_URL}/chat`, { message, history });
     res.json(response.data);
   } catch (err) {
     console.error('AI Chat Proxy Error:', err.message);
@@ -193,7 +194,7 @@ app.get('/api/nasa/apod', async (req, res, next) => {
     const apiKey = process.env.NASA_API_KEY || 'DEMO_KEY';
     const url = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}`;
     console.log('>>> [BACKEND] Fetching NASA APOD...');
-    
+
     // Explicitly handle timeout
     const response = await axios.get(url, { timeout: 10000 }).catch(e => {
       console.log('>>> [BACKEND] Axios internal catch triggered:', e.message);
@@ -201,14 +202,14 @@ app.get('/api/nasa/apod', async (req, res, next) => {
     });
 
     if (response.isError) {
-       throw new Error(response.message);
+      throw new Error(response.message);
     }
 
     console.log('>>> [BACKEND] NASA API Success');
     return res.json(response.data);
   } catch (err) {
     console.error('>>> [BACKEND] APOD ROUTE ERROR:', err.message);
-    
+
     // Return fallback instead of 500
     console.log('>>> [BACKEND] Serving Fallback JSON');
     return res.status(200).json({
@@ -225,14 +226,14 @@ app.get('/api/nasa/apod', async (req, res, next) => {
 app.get('/api/nasa/images', async (req, res) => {
   try {
     const { q, page, media_type, year_start, year_end, nasa_id, description } = req.query;
-    
+
     // Build parameters for NASA API
     const params = {
       q,
       page: page || 1,
       media_type: media_type || 'image,video'
     };
-    
+
     if (year_start) params.year_start = year_start;
     if (year_end) params.year_end = year_end;
     if (nasa_id) params.nasa_id = nasa_id;
@@ -261,10 +262,15 @@ app.get('/api/nasa/asset/:nasaId', async (req, res) => {
 // News Proxy (Spaceflight News API)
 app.get('/api/news/latest', async (req, res) => {
   try {
+    // Determine a random offset to fetch different recent articles each time
+    const randomOffset = Math.floor(Math.random() * 200);
     const response = await axios.get('https://api.spaceflightnewsapi.net/v4/articles/', {
-      params: { limit: 50 }
+      params: { limit: 50, offset: randomOffset }
     });
-    res.json(response.data.results);
+    
+    // Shuffle the items
+    const shuffled = response.data.results.sort(() => 0.5 - Math.random());
+    res.json(shuffled);
   } catch (err) {
     console.error('Space News Proxy Error:', err.message);
     res.status(500).json({ message: 'Error fetching space news' });
@@ -276,7 +282,7 @@ app.get('/api/youtube/videos', async (req, res) => {
   try {
     const { q, lang } = req.query;
     let refinedQuery = `${q} astronomy -shorts -panel -panels`;
-    
+
     // Target top Hindi science creators if lang=hi
     if (lang === 'hi') {
       refinedQuery = `${q} astronomy hindi GetSetFlyScience Antariksh TV -shorts`;
@@ -320,7 +326,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`========================================`);
-  console.log(`Backend running on port ${PORT} [LEGACY AI MODE]`);
+  console.log(`Backend running on port ${PORT} [HYBRID AI MODE]`);
   console.log(`Health Check: http://localhost:${PORT}/api/health`);
   console.log(`========================================`);
 });

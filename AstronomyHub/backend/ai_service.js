@@ -20,11 +20,11 @@ app.use(cors());
 let model = null;
 if (GoogleGenerativeAI && process.env.GEMINI_API_KEY) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 }
 
 console.log('========================================');
-console.log('   🌌 ASTRONOMY HUB GEMINI SERVICE');
+console.log('   ASTRONOMY HUB GEMINI SERVICE');
 console.log('   [ENGINE: GOOGLE GEMINI ACTIVE]');
 console.log('========================================');
 
@@ -65,8 +65,17 @@ app.post('/refine-search', async (req, res) => {
     }
 
     const prompt = `Convert this natural language space search into NASA Image API parameters: "${query}".
-    Focus on extracting keywords and timeframes.
-    Return ONLY a JSON object: { "q": "...", "year_start": "...", "year_end": "...", "media_type": "..." }`;
+    Focus on extracting keywords and timeframes. 
+    VERY IMPORTANT: If the user has a typo (e.g. "balck hole", "planit", "nebulla"), FIX IT in the "q" field.
+    
+    Return ONLY a JSON object: 
+    { 
+      "q": "...", 
+      "year_start": "...", 
+      "year_end": "...", 
+      "media_type": "...",
+      "correction_detected": true/false 
+    }`;
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
@@ -78,6 +87,43 @@ app.post('/refine-search', async (req, res) => {
   } catch (err) {
     console.error('Gemini Service Error (Refine):', err.message);
     res.status(500).json({ error: 'Failed to refine search' });
+  }
+});
+
+// Route: Analyze News (Gemini)
+app.post('/analyze', async (req, res) => {
+  try {
+    const { text } = req.body;
+    
+    if (!model) {
+        throw new Error('Gemini model not initialized.');
+    }
+
+    const prompt = `Analyze the following astronomy/space article. 
+    1. Write a 2-3 sentence summary.
+    2. Extract up to 8 keywords as an array of strings.
+    3. Classify it into these categories with a confidence score (0 to 1): "Exoplanets", "Galaxies", "Stars and Nebulae", "Space Missions", "Astronomy General".
+    
+    Return EXACTLY a JSON object with this structure:
+    {
+      "summary": "...",
+      "keywords": ["...", "..."],
+      "classification": { "Exoplanets": 0.1, "Galaxies": 0.8, "Stars and Nebulae": 0.05, "Space Missions": 0.0, "Astronomy General": 0.05 }
+    }
+    
+    Article text:
+    "${text}"`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    const analysisData = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+    
+    console.log('>>> [GEMINI SERVICE] Analyzed Article');
+    res.json(analysisData);
+  } catch (err) {
+    console.error('Gemini Service Error (Analyze):', err.message);
+    res.status(500).json({ error: 'Failed to analyze article' });
   }
 });
 

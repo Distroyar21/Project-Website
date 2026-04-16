@@ -1,11 +1,29 @@
 @import "tailwindcss";
 
+html, body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important; 
+}
+
+::-webkit-scrollbar {
+  display: none !important;
+}
+
 body {
   background: radial-gradient(circle at center, #5e10b7 0%, #000000 100%);
   color: white;
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
+}
+
+/* Custom utility for containers */
+.scrollbar-hide {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;
 }
 
 .stars-container {

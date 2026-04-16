@@ -57,17 +57,12 @@ export const fetchNasaAsset = async (nasaId) => {
 };
 
 
-let newsCache = null;
-
 export const fetchNasaNews = async () => {
-  if (newsCache) return newsCache;
-  
   try {
     const response = await fetch(`${API_BASE_URL}/news/latest`);
     if (!response.ok) throw new Error('NASA News error');
     const data = await response.json();
-    newsCache = data;
-    return newsCache;
+    return data;
   } catch (error) {
     console.error('Error fetching NASA news:', error);
     return [];

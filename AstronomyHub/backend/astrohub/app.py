@@ -14,9 +14,9 @@ models = {}
 def load_all_models():
     print("Attempting to load Cosmic AI Models...")
     try:
-        models["summarizer"] = pipeline("summarization", model="facebook/bart-large-cnn")
-        models["classifier"] = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-        models["chat"] = pipeline("text2text-generation", model="google/flan-t5-base")
+        models["summarizer"] = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+        models["classifier"] = pipeline("zero-shot-classification", model="valhalla/distilbart-mnli-12-3")
+        models["chat"] = pipeline("text2text-generation", model="google/flan-t5-small")
         print("All models loaded successfully!")
     except Exception as e:
         print(f"Error loading models: {e}")

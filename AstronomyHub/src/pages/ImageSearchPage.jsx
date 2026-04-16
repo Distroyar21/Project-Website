@@ -13,22 +13,41 @@ const ImageSearchPage = () => {
   const [yearEnd, setYearEnd] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
+  const [autoCorrectedQuery, setAutoCorrectedQuery] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [assetUrl, setAssetUrl] = useState('');
-  const [isLoadingAsset, setIsLoadingAsset] = useState(false);
 
   useEffect(() => {
     handleSearch(1);
   }, []);
 
-  const handleSearch = async (page = 1) => {
+  const handleSearch = async (page = 1, isManual = true) => {
     setLoading(true);
+    if (isManual) setAutoCorrectedQuery(null); // Clear previous correction on new manual search
+    
     setCurrentPage(page);
-    const results = await fetchNasaImages(searchQuery, page, {
+    
+    // Attempt normal search first
+    let results = await fetchNasaImages(searchQuery, page, {
       mediaType,
       yearStart,
       yearEnd
     });
+
+    // If 0 results for a multi-word or non-obvious term, or we just want to be smart:
+    if (results.length === 0 && searchQuery.trim().length > 2) {
+      setIsRefining(true);
+      const refined = await refineSearch(searchQuery);
+      if (refined && (refined.correction_detected || refined.q.toLowerCase() !== searchQuery.toLowerCase())) {
+        setAutoCorrectedQuery(refined.q);
+        results = await fetchNasaImages(refined.q, 1, {
+          mediaType: refined.media_type || mediaType,
+          yearStart: refined.year_start || yearStart,
+          yearEnd: refined.year_end || yearEnd
+        });
+      }
+      setIsRefining(false);
+    }
+
     setImages(results);
     setLoading(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -36,9 +55,9 @@ const ImageSearchPage = () => {
 
   const handlePageChange = (direction) => {
     if (direction === 'next') {
-      handleSearch(currentPage + 1);
+      handleSearch(currentPage + 1, false);
     } else if (direction === 'prev' && currentPage > 1) {
-      handleSearch(currentPage - 1);
+      handleSearch(currentPage - 1, false);
     }
   };
 
@@ -47,7 +66,10 @@ const ImageSearchPage = () => {
     setIsRefining(true);
     const refined = await refineSearch(searchQuery);
     if (refined) {
-      if (refined.q) setSearchQuery(refined.q);
+      if (refined.q) {
+        setSearchQuery(refined.q);
+        if (refined.correction_detected) setAutoCorrectedQuery(refined.q);
+      }
       if (refined.year_start) setYearStart(refined.year_start);
       if (refined.year_end) setYearEnd(refined.year_end);
       if (refined.media_type) setMediaType(refined.media_type);
@@ -93,7 +115,7 @@ const ImageSearchPage = () => {
       </motion.div>
 
       <div className="flex flex-col items-center mb-16">
-        <div className="search-container w-full max-w-2xl flex gap-3">
+        <div className="search-container w-full max-w-2xl flex gap-3 relative">
           <div className="relative flex-1">
             <input 
               className="search-input !w-full pr-12"
@@ -123,6 +145,23 @@ const ImageSearchPage = () => {
             <i className="fas fa-sliders-h"></i>
           </button>
         </div>
+
+        {autoCorrectedQuery && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mt-4 flex items-center gap-2 text-sm"
+          >
+            <span className="text-gray-500">Showing results for:</span>
+            <span className="text-blue-400 font-bold italic underline decoration-blue-400/30 underline-offset-4">{autoCorrectedQuery}</span>
+            <button 
+              onClick={() => {setSearchQuery(autoCorrectedQuery); setAutoCorrectedQuery(null);}}
+              className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/20 ml-2"
+            >
+              keep this
+            </button>
+          </motion.div>
+        )}
 
         {showFilters && (
           <motion.div 

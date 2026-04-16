@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { fetchYoutubeVideos } from '../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fetchYoutubeVideos, refineSearch } from '../services/api';
 import { ImageCardSkeleton } from '../components/Skeleton';
 
 const VideoSearchPage = () => {
@@ -9,16 +9,45 @@ const VideoSearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('astronomy');
   const [language, setLanguage] = useState('en');
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isRefining, setIsRefining] = useState(false);
+  const [autoCorrectedQuery, setAutoCorrectedQuery] = useState(null);
 
   useEffect(() => {
-    handleSearch();
+    handleSearch(true);
   }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = async (isManual = true) => {
     setLoading(true);
-    const results = await fetchYoutubeVideos(searchQuery, language);
+    if (isManual) setAutoCorrectedQuery(null);
+    
+    // Attempt normal search first
+    let results = await fetchYoutubeVideos(searchQuery, language);
+
+    // If results seem generic or user wants to be smart (simulated empty check for YouTube is harder as it often returns something)
+    // Here we primarily rely on manual refinement or proactive correction if typo is clear
+    if (searchQuery.trim().length > 2 && isManual) {
+      // In a real app we might check if results[0] relevance is low. 
+      // For this project, let's allow manual refinement mainly, but we can do a background check.
+    }
+
     setVideos(results);
     setLoading(false);
+  };
+
+  const handleSmartRefine = async () => {
+    if (!searchQuery.trim()) return;
+    setIsRefining(true);
+    const refined = await refineSearch(searchQuery);
+    if (refined) {
+      if (refined.q) {
+        setSearchQuery(refined.q);
+        if (refined.correction_detected) setAutoCorrectedQuery(refined.q);
+      }
+      
+      const results = await fetchYoutubeVideos(refined.q || searchQuery, language);
+      setVideos(results);
+    }
+    setIsRefining(false);
   };
 
   return (
@@ -33,35 +62,46 @@ const VideoSearchPage = () => {
       </motion.div>
 
       <div className="flex flex-col items-center mb-16 gap-6">
-        <div className="search-container w-full max-w-2xl flex gap-4">
-          <input 
-            className="search-input !w-full"
-            type="text" 
-            placeholder="Search cosmic videos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button className="btn-search whitespace-nowrap" onClick={handleSearch}>
+        <div className="search-container w-full max-w-2xl flex gap-4 relative">
+          <div className="relative flex-1">
+            <input 
+              className="search-input !w-full pr-12"
+              type="text" 
+              placeholder="Search cosmic videos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            />
+            <button 
+              onClick={handleSmartRefine}
+              disabled={isRefining}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-300 transition-all ${isRefining ? 'animate-pulse' : ''}`}
+              title="AI Smart Refine"
+            >
+              <i className={`fas ${isRefining ? 'fa-spinner fa-spin' : 'fa-magic'}`}></i>
+            </button>
+          </div>
+          <button className="btn-search whitespace-nowrap px-8" onClick={() => handleSearch()}>
             Search
           </button>
         </div>
 
-        {/* Language Selector */}
-        <div className="flex bg-white/5 p-1 rounded-full border border-white/10">
-          {/* <button 
-            onClick={() => setLanguage('en')}
-            className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${language === 'en' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:text-white'}`}
+        {autoCorrectedQuery && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="flex items-center gap-2 text-sm"
           >
-            English
-          </button> */}
-          {/* <button 
-            onClick={() => setLanguage('hi')}
-            className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${language === 'hi' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:text-white'}`}
-          >
-            हिन्दी (Hindi)
-          </button> */}
-        </div>
+            <span className="text-gray-500">Showing results for:</span>
+            <span className="text-blue-400 font-bold italic underline decoration-blue-400/30 underline-offset-4">{autoCorrectedQuery}</span>
+            <button 
+              onClick={() => {setSearchQuery(autoCorrectedQuery); setAutoCorrectedQuery(null);}}
+              className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/20 ml-2"
+            >
+              keep this
+            </button>
+          </motion.div>
+        )}
       </div>
 
       {loading ? (
