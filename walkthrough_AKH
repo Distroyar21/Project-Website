@@ -1,0 +1,68 @@
+# Astronomy Hub: Project Overview & Walkthrough
+
+Astronomy Hub is a professional, feature-rich web portal designed for space enthusiasts. It combines real-time data from NASA and YouTube with advanced AI capabilities provided by Google Gemini to create an immersive exploration experience.
+
+## 🚀 Core Features
+
+### 1. Galactic Gallery (Image & Video Search)
+- **NASA Integration**: Fetches data directly from the NASA Image and Video Library.
+- **✨ AI Smart Search**: Powered by Gemini 1.5 Flash. Users can type natural queries like "Hubble images of pulsars from the 1990s" and the AI automatically extracts specific search parameters (keywords, year range, media type).
+- **Advanced Filters**: Manual controls for year range and media type selection.
+
+### 2. Cosmic AI Assistant (Chat)
+- **Expert Interaction**: A specialized chat interface where users can ask complex astronomical questions.
+- **Powered by Gemini**: Uses the `gemini-1.5-flash` model for fast, accurate, and professional responses.
+- **Contextual Knowledge**: Built with custom prompts to ensure the AI behaves as an expert astronomer.
+
+### 3. Space News & AI Summarization
+- **Latest Headlines**: Aggregates news from the Spaceflight News API.
+- **AI Analysis**: One-click summarization, keyword extraction, and categorization of news articles using Gemini.
+- **Personalization**: The AI automatically updates user "Interests" based on the news they analyze, providing tailored content suggestions.
+
+### 4. Interactive Video Exploration
+- **Curated Video Feed**: Integrated with the YouTube Data API to fetch educational space content.
+- **Multi-language Support**: Specialized support for both English and Hindi science communication.
+
+---
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **Framework**: React.js with Vite for blazing-fast development.
+- **Styling**: Vanilla CSS for premium, custom aesthetics with glassmorphism effects.
+- **Animations**: Framer Motion for smooth transitions and interactive feedback.
+- **Icons**: FontAwesome and SVG-based components.
+
+### Backend
+- **Runtime**: Node.js with Express.
+- **Database**: MongoDB (used for user profiles, authentication, and interest tracking).
+- **Proxy Architecture**: The backend acts as a secure middle-layer, protecting API keys and refining requests to NASA and YouTube.
+
+### AI Integration
+- **Engine**: Google Generative AI (Gemini SDK).
+- **Capabilities**: Query refinement, summarization, text categorization, and conversational AI.
+
+---
+
+## 🏗️ Project Architecture
+
+```mermaid
+graph TD
+    User((User)) -- React Frontend --> FE[Vite App]
+    FE -- API Calls --> BE[Node.js Backend]
+    BE -- SDK --> Gemini[Google Gemini AI]
+    BE -- HTTP Proxy --> NASA[NASA APIs]
+    BE -- HTTP Proxy --> YT[YouTube API]
+    BE -- Auth/Data --> DB[(MongoDB)]
+```
+
+---
+
+## 🏁 How to Run
+
+1.  **Prerequisites**: Ensure you have Node.js and an active internet connection.
+2.  **Environment Setup**: Add your `API_KEYS` (NASA, YouTube, Gemini) to the [backend/.env](file:///c:/Users/admin/OneDrive/Desktop/F.E.PROJ_CSE/AstronomyHub/backend/.env) file.
+3.  **One-Click Launch**: Run the [start_all.bat](file:///c:/Users/admin/OneDrive/Desktop/F.E.PROJ_CSE/AstronomyHub/start_all.bat) file in the root directory. 
+    - This will launch the Node.js Backend on port `5006`.
+    - It will launch the Vite Frontend on its default port.
+    - All services are pre-configured to communicate seamlessly.

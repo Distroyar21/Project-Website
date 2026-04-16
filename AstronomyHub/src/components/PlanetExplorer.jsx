@@ -183,9 +183,9 @@ const PlanetExplorer = () => {
               transition={{ delay: 0.6 }}
               className="mt-10 flex gap-4"
             >
-              <button className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-blue-400 hover:text-white transition-all transform hover:-translate-y-1 shadow-lg shadow-white/10">
+              {/* <button className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-blue-400 hover:text-white transition-all transform hover:-translate-y-1 shadow-lg shadow-white/10">
                 Explore {planet.name}
-              </button>
+              </button> */}
             </motion.div>
           </div>
         </motion.div>

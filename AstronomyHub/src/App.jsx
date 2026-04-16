@@ -22,7 +22,7 @@ function App() {
           <Route path="news" element={<NewsSearchPage />} />
           <Route path="suggestions" element={<SuggestionsPage />} />
           <Route path="about" element={<AboutPage />} />
-          {/* <Route path="chat" element={<AIChatPage />} /> */}
+          <Route path="chat" element={<AIChatPage />} />
         </Route>
 
         {/* Auth Routes without Layout */}

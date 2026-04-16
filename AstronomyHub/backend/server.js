@@ -1,3 +1,4 @@
+console.log('>>> [STARTUP] server.js is starting...');
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -9,6 +10,10 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('./models/User');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Initialize AI Service URL
+const AI_SERVICE_URL = 'http://localhost:8004';
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -102,16 +107,17 @@ const auth = async (req, res, next) => {
 // --- API PROXY ROUTES (Security Layer) ---
 
 // AI News Analysis & Personalization
-app.post('/api/news/analyze', auth, async (req, res) => {
+app.post('/api/ai/analyze', auth, async (req, res) => {
   try {
     const { text } = req.body;
-    // Call Python AI Service
-    const aiResponse = await axios.post('http://localhost:8000/analyze', { text });
-    const { summary, keywords, classification } = aiResponse.data;
+    
+    // Call separate AI service
+    const response = await axios.post(`${AI_SERVICE_URL}/analyze`, { text });
+    const aiData = response.data;
+    const { summary, keywords, classification } = aiData;
 
     // Personalize if user is logged in
     if (req.user) {
-      // Add top keywords to user interests, avoiding duplicates and limiting to top 20
       const currentInterests = new Set(req.user.interests);
       keywords.slice(0, 3).forEach(kw => currentInterests.add(kw.toLowerCase()));
       req.user.interests = Array.from(currentInterests).slice(-20);
@@ -120,8 +126,11 @@ app.post('/api/news/analyze', auth, async (req, res) => {
 
     res.json({ summary, keywords, classification });
   } catch (err) {
-    console.error('AI Analysis Error:', err.message);
-    res.status(500).json({ message: 'Error connecting to AI service' });
+    console.error('AI Analysis Proxy Error:', err.message);
+    if (err.response) {
+      console.error('AI Service Response:', err.response.data);
+    }
+    res.status(503).json({ message: 'AI Service Temporarily Unavailable', error: err.message });
   }
 });
 
@@ -147,22 +156,30 @@ app.get('/api/user/suggestions', auth, async (req, res) => {
   }
 });
 
+// AI Search Refinement
+app.post('/api/ai/refine-search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const response = await axios.post(`${AI_SERVICE_URL}/refine-search`, { query });
+    res.json(response.data);
+  } catch (err) {
+    console.error('Refine Search Proxy Error:', err.message);
+    res.status(500).json({ message: 'Error refining search' });
+  }
+});
+
 //AI Chat
 app.post('/api/ai/chat', async (req, res) => {
   try {
-    const { message } = req.body;
-    const aiResponse = await axios.post('http://localhost:8000/chat', { message }, { timeout: 60000 });
-    console.log('>>> [BACKEND] AI Response Received:', aiResponse.data);
-    res.json(aiResponse.data);
+    const { message, history } = req.body;
+    const response = await axios.post(`${AI_SERVICE_URL}/chat`, { message, history });
+    res.json(response.data);
   } catch (err) {
-    console.error('AI Chat Error:', err.message);
-    const status = err.response ? err.response.status : 500;
-    
-    let msg = 'Cosmic AI is currently deep in space.';
-    if (err.code === 'ECONNABORTED') msg = 'AI response timed out (30s). The model might be slow on the first run.';
-    if (err.code === 'ECONNREFUSED') msg = 'AI Service Unreachable: Ensure the Python script is running on port 8000.';
-    
-    res.status(status).json({ reply: msg, error: err.message });
+    console.error('AI Chat Proxy Error:', err.message);
+    if (err.response) {
+      console.error('AI Service Response:', err.response.data);
+    }
+    res.status(503).json({ reply: "The AI Service terminal is currently offline. Please ensure it is running.", error: err.message });
   }
 });
 
@@ -207,7 +224,7 @@ app.get('/api/nasa/apod', async (req, res, next) => {
 // NASA Images Proxy
 app.get('/api/nasa/images', async (req, res) => {
   try {
-    const { q, page, media_type, year_start, year_end } = req.query;
+    const { q, page, media_type, year_start, year_end, nasa_id, description } = req.query;
     
     // Build parameters for NASA API
     const params = {
@@ -218,12 +235,39 @@ app.get('/api/nasa/images', async (req, res) => {
     
     if (year_start) params.year_start = year_start;
     if (year_end) params.year_end = year_end;
+    if (nasa_id) params.nasa_id = nasa_id;
+    if (description) params.description = description;
 
     const response = await axios.get(`https://images-api.nasa.gov/search`, { params });
     res.json(response.data);
   } catch (err) {
     console.error('NASA Images Proxy Error:', err.response?.data || err.message);
     res.status(500).json({ message: 'Error fetching NASA images' });
+  }
+});
+
+// NASA Asset Proxy (to get video URLs)
+app.get('/api/nasa/asset/:nasaId', async (req, res) => {
+  try {
+    const { nasaId } = req.params;
+    const response = await axios.get(`https://images-api.nasa.gov/asset/${nasaId}`);
+    res.json(response.data);
+  } catch (err) {
+    console.error('NASA Asset Proxy Error:', err.message);
+    res.status(500).json({ message: 'Error fetching NASA asset' });
+  }
+});
+
+// News Proxy (Spaceflight News API)
+app.get('/api/news/latest', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.spaceflightnewsapi.net/v4/articles/', {
+      params: { limit: 50 }
+    });
+    res.json(response.data.results);
+  } catch (err) {
+    console.error('Space News Proxy Error:', err.message);
+    res.status(500).json({ message: 'Error fetching space news' });
   }
 });
 
@@ -266,7 +310,7 @@ app.get('/api/youtube/videos', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5006;
 
 // Global Error Handler
 app.use((err, req, res, next) => {
@@ -276,7 +320,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`========================================`);
-  console.log(`Backend running on port ${PORT}`);
+  console.log(`Backend running on port ${PORT} [LEGACY AI MODE]`);
   console.log(`Health Check: http://localhost:${PORT}/api/health`);
   console.log(`========================================`);
 });

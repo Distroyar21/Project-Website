@@ -23,14 +23,25 @@ const NewsSearchPage = () => {
   }, []);
 
   const handleReadFull = async (item) => {
-    setSelectedItem(item);
+    // Normalize item for modal display
+    const normalizedItem = {
+      id: item.id || item.data?.[0]?.nasa_id || Math.random().toString(),
+      title: item.title || item.data?.[0]?.title,
+      summary: item.summary || item.data?.[0]?.description || item.data?.[0]?.summary || "No description available.",
+      image_url: item.image_url || item.links?.[0]?.href || 'https://images-assets.nasa.gov/image/PIA25433/PIA25433~orig.jpg',
+      news_site: item.news_site || (item.data ? 'NASA Media' : 'Space News'),
+      published_at: item.published_at || item.data?.[0]?.date_created || new Date().toISOString(),
+      url: item.url || (item.data?.[0]?.nasa_id ? `https://images.nasa.gov/details-${item.data[0].nasa_id}` : '#')
+    };
+
+    setSelectedItem(normalizedItem);
     setAnalysis(null);
     setRelatedItems([]);
     setAnalyzing(true);
     setLoadingRelated(true);
     
     // AI Analysis
-    const result = await analyzeNews(item.data[0].description);
+    const result = await analyzeNews(normalizedItem.summary);
     setAnalysis(result);
     setAnalyzing(false);
 
@@ -40,7 +51,7 @@ const NewsSearchPage = () => {
       const related = await fetchNasaImages(keyword, 1, { mediaType: 'image,video' });
       // Filter out the current item if it appears in results
       const filtered = related
-        .filter(r => r.data[0].nasa_id !== item.data[0].nasa_id)
+        .filter(r => r.data[0].title !== normalizedItem.title)
         .slice(0, 4);
       setRelatedItems(filtered);
     }
@@ -68,7 +79,7 @@ const NewsSearchPage = () => {
         <div className="space-y-12">
           {news.map((item, idx) => (
             <motion.div
-              key={item.data[0].nasa_id + idx}
+              key={item.id || idx}
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -76,20 +87,20 @@ const NewsSearchPage = () => {
             >
               <div className="w-full md:w-1/3 aspect-video md:aspect-square overflow-hidden rounded-2xl shrink-0 bg-white/5">
                 <img 
-                  src={item.links[0].href} 
-                  alt={item.data[0].title}
+                  src={item.image_url} 
+                  alt={item.title}
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
               </div>
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full uppercase tracking-widest">Space Mission</span>
-                  <span className="text-gray-500 text-xs font-medium">{new Date(item.data[0].date_created).toLocaleDateString()}</span>
+                  <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full uppercase tracking-widest">{item.news_site || 'Space News'}</span>
+                  <span className="text-gray-500 text-xs font-medium">{new Date(item.published_at).toLocaleDateString()}</span>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-purple-400 transition-colors leading-tight">{item.data[0].title}</h3>
+                <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-purple-400 transition-colors leading-tight">{item.title}</h3>
                 <p className="text-gray-400 leading-relaxed mb-6 line-clamp-3">
-                  {item.data[0].description}
+                  {item.summary}
                 </p>
                 <button 
                   onClick={() => handleReadFull(item)}
@@ -123,8 +134,8 @@ const NewsSearchPage = () => {
             >
               <div className="relative h-64 md:h-96">
                 <img 
-                  src={selectedItem.links[0].href} 
-                  alt={selectedItem.data[0].title}
+                  src={selectedItem.image_url} 
+                  alt={selectedItem.title}
                   className="w-full h-full object-cover"
                 />
                 <button 
@@ -137,21 +148,27 @@ const NewsSearchPage = () => {
 
               <div className="p-8">
                 <div className="flex items-center gap-4 mb-6">
-                  <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full uppercase tracking-widest">Space Mission</span>
-                  <span className="text-gray-500 font-medium">{new Date(selectedItem.data[0].date_created).toLocaleDateString()}</span>
+                  <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full uppercase tracking-widest">{selectedItem.news_site || 'Space News'}</span>
+                  <span className="text-gray-500 font-medium">{new Date(selectedItem.published_at).toLocaleDateString()}</span>
                 </div>
                 
-                <h2 className="text-4xl font-bold text-white mb-8 leading-tight">{selectedItem.data[0].title}</h2>
+                <h2 className="text-4xl font-bold text-white mb-8 leading-tight">{selectedItem.title}</h2>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
                   <div className="lg:col-span-3">
                     <h3 className="text-xl font-bold text-blue-400 mb-6 flex items-center gap-2">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                      Mission Description
+                      News Description
                     </h3>
                     <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">
-                      {selectedItem.data[0].description}
+                      {selectedItem.summary}
                     </p>
+                    <div className="mt-8">
+                      <a href={selectedItem.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-colors">
+                        Read Original Article on {selectedItem.news_site || 'Source'}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                      </a>
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-8">

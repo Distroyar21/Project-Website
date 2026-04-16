@@ -4,7 +4,7 @@ import { chatWithAI } from '../services/api';
 
 const AIChatPage = () => {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Welcome to the Cosmic Observatory! I am your AI guide. Ask me anything about the universe, stars, or space missions.", sender: 'ai', time: new Date() }
+    { id: 1, text: "Hello! I am your Cosmic AI assistant. I have access to the latest astronomical data. How can I help you explore the universe today?", sender: 'ai', time: new Date() }
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -57,14 +57,19 @@ const AIChatPage = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 h-[calc(100vh-120px)] flex flex-col">
+    <div className="max-w-5xl mx-auto px-6 py-12 h-[100vh] flex flex-col">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 text-center"
       >
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4">
+          <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
+          <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Cosmic AI Online</span>
+        </div>
         <h1 className="text-4xl font-bold header-title mb-3">Cosmic AI Assistant</h1>
-        <p className="text-gray-400">Your portal to interstellar knowledge.</p>
+        <p className="text-gray-400">Your portal to interstellar knowledge, enhanced with the latest AI technology.</p>
+        <h3 className='text-gray-400 text-sm'>(Our chatbot is in early stages, so it may not be able to answer all the questions, future updates soon...)</h3>
       </motion.div>
 
       <div className="flex-1 overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl flex flex-col shadow-2xl relative">
@@ -76,7 +81,7 @@ const AIChatPage = () => {
               animate={{ opacity: 1, x: 0 }}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[80%] p-4 rounded-2xl ${
+              <div className={`max-w-[80%] p-5 rounded-2xl ${
                 msg.sender === 'user' 
                   ? 'bg-blue-600 text-white rounded-tr-none' 
                   : 'bg-white/10 text-gray-200 border border-white/10 rounded-tl-none'
@@ -97,7 +102,7 @@ const AIChatPage = () => {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="flex justify-start"
               >
-                <div className="bg-white/10 border border-white/10 p-3 rounded-2xl rounded-tl-none flex gap-1 items-center">
+                <div className="bg-white/10 border border-white/10 p-8 rounded-2xl rounded-tl-none flex gap-1 items-center">
                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-75"></div>
                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-150"></div>

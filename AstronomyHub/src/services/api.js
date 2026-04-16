@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5005/api';
+const API_BASE_URL = 'http://localhost:5007/api';
 
 export const fetchApod = async () => {
   try {
@@ -30,6 +30,32 @@ export const fetchNasaImages = async (query = 'astronomy', page = 1, options = {
   }
 };
 
+export const refineSearch = async (query) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ai/refine-search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    if (!response.ok) throw new Error('AI Refine error');
+    return await response.json();
+  } catch (error) {
+    console.error('Error refining search:', error);
+    return null;
+  }
+};
+
+export const fetchNasaAsset = async (nasaId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/nasa/asset/${nasaId}`);
+    if (!response.ok) throw new Error('NASA Asset error');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching NASA asset:', error);
+    return null;
+  }
+};
+
 
 let newsCache = null;
 
@@ -37,10 +63,10 @@ export const fetchNasaNews = async () => {
   if (newsCache) return newsCache;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/nasa/images?q=mission&media_type=image&year_start=2024`);
+    const response = await fetch(`${API_BASE_URL}/news/latest`);
     if (!response.ok) throw new Error('NASA News error');
     const data = await response.json();
-    newsCache = data.collection.items.slice(0, 10);
+    newsCache = data;
     return newsCache;
   } catch (error) {
     console.error('Error fetching NASA news:', error);
@@ -104,7 +130,7 @@ export const googleLogin = async (credential) => {
 export const analyzeNews = async (text) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/news/analyze`, {
+    const response = await fetch(`${API_BASE_URL}/ai/analyze`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

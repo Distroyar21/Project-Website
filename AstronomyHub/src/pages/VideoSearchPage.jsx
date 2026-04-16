@@ -49,18 +49,18 @@ const VideoSearchPage = () => {
 
         {/* Language Selector */}
         <div className="flex bg-white/5 p-1 rounded-full border border-white/10">
-          <button 
+          {/* <button 
             onClick={() => setLanguage('en')}
             className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${language === 'en' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:text-white'}`}
           >
             English
-          </button>
-          <button 
+          </button> */}
+          {/* <button 
             onClick={() => setLanguage('hi')}
             className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${language === 'hi' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:text-white'}`}
           >
             हिन्दी (Hindi)
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -132,7 +132,7 @@ const VideoSearchPage = () => {
             </button>
             <iframe
               src={`https://www.youtube.com/embed/${selectedVideo.id}?autoplay=1`}
-              title={video.title}
+              title={selectedVideo.title}
               className="w-full h-full border-none"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
