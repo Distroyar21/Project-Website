@@ -9,6 +9,7 @@ import NewsSearchPage from './pages/NewsSearchPage';
 import SuggestionsPage from './pages/SuggestionsPage';
 import AboutPage from './pages/AboutPage';
 import AIChatPage from './pages/AIChatPage';
+import QuizPage from './pages/QuizPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="suggestions" element={<SuggestionsPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="chat" element={<AIChatPage />} />
+          <Route path="quiz" element={<QuizPage />} />
         </Route>
 
         {/* Auth Routes without Layout */}

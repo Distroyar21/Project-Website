@@ -63,6 +63,7 @@ const Navbar = () => {
             AI Chat
             <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[8px] font-bold rounded-full uppercase tracking-tighter border border-blue-500/30">New</span>
           </Link>
+          <Link to="/quiz" className="hover:text-white transition-colors">Quiz</Link>
           {user && <Link to="/suggestions" className="hover:text-white transition-colors">Suggestions</Link>}
           <Link to="/about" className="hover:text-white transition-colors">About</Link>
         </div>

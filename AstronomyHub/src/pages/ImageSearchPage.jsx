@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { fetchNasaImages, refineSearch, fetchNasaAsset } from '../services/api';
+import { fetchNasaImages, refineSearch, fetchNasaAsset, addInterestToProfile } from '../services/api';
 import { ImageCardSkeleton } from '../components/Skeleton';
 
 const ImageSearchPage = () => {
@@ -22,7 +22,12 @@ const ImageSearchPage = () => {
 
   const handleSearch = async (page = 1, isManual = true) => {
     setLoading(true);
-    if (isManual) setAutoCorrectedQuery(null); // Clear previous correction on new manual search
+    if (isManual) {
+      setAutoCorrectedQuery(null); // Clear previous correction on new manual search
+      if (searchQuery.trim().length > 2) {
+        addInterestToProfile(searchQuery);
+      }
+    }
     
     setCurrentPage(page);
     

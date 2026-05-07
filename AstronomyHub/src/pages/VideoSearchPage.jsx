@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchYoutubeVideos, refineSearch } from '../services/api';
+import { fetchYoutubeVideos, refineSearch, addInterestToProfile } from '../services/api';
 import { ImageCardSkeleton } from '../components/Skeleton';
 
 const VideoSearchPage = () => {
@@ -18,7 +18,12 @@ const VideoSearchPage = () => {
 
   const handleSearch = async (isManual = true) => {
     setLoading(true);
-    if (isManual) setAutoCorrectedQuery(null);
+    if (isManual) {
+      setAutoCorrectedQuery(null);
+      if (searchQuery.trim().length > 2) {
+        addInterestToProfile(searchQuery);
+      }
+    }
     
     // Attempt normal search first
     let results = await fetchYoutubeVideos(searchQuery, language);

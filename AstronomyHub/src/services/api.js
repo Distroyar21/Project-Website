@@ -141,6 +141,26 @@ export const analyzeNews = async (text) => {
   }
 };
 
+export const addInterestToProfile = async (keyword) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const response = await fetch(`${API_BASE_URL}/user/add-interest`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ keyword })
+    });
+    if (!response.ok) throw new Error('Error adding interest');
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding interest to profile:', error);
+    return null;
+  }
+};
+
 export const fetchSuggestions = async () => {
   try {
     const token = localStorage.getItem('token');

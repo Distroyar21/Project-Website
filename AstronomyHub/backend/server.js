@@ -135,6 +135,30 @@ app.post('/api/ai/analyze', auth, async (req, res) => {
   }
 });
 
+// Add Explicit Interest (from Search or Saved Item)
+app.post('/api/user/add-interest', auth, async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+  try {
+    const { keyword } = req.body;
+    if (!keyword || keyword.trim().length < 3) {
+      return res.status(400).json({ message: 'Invalid keyword' });
+    }
+
+    const cleanKeyword = keyword.trim().toLowerCase();
+    const currentInterests = new Set(req.user.interests);
+    
+    // Add new keyword and ensure max 20 items (keeping the newest)
+    currentInterests.add(cleanKeyword);
+    req.user.interests = Array.from(currentInterests).slice(-20);
+    
+    await req.user.save();
+    res.json({ message: 'Interest added successfully', interests: req.user.interests });
+  } catch (err) {
+    console.error('Error adding interest:', err.message);
+    res.status(500).json({ message: 'Error adding interest' });
+  }
+});
+
 // User Suggestions based on Interests
 app.get('/api/user/suggestions', auth, async (req, res) => {
   if (!req.user || !req.user.interests.length) {
@@ -173,8 +197,16 @@ app.post('/api/ai/refine-search', async (req, res) => {
 app.post('/api/ai/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
-    const response = await axios.post(`${GEMINI_SERVICE_URL}/chat`, { message, history });
-    res.json(response.data);
+    try {
+      // Try Gemini primary service first
+      const response = await axios.post(`${GEMINI_SERVICE_URL}/chat`, { message, history }, { timeout: 8000 });
+      res.json(response.data);
+    } catch (geminiErr) {
+      console.warn('>>> [BACKEND] Gemini Service unavailable/overloaded. Falling back to local offline AI...', geminiErr.message);
+      // Fallback to local Python model
+      const fallbackResponse = await axios.post(`${AI_SERVICE_URL}/chat`, { message }, { timeout: 8000 });
+      res.json(fallbackResponse.data);
+    }
   } catch (err) {
     console.error('AI Chat Proxy Error:', err.message);
     if (err.response) {
