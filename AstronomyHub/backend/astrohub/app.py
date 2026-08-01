@@ -35,7 +35,15 @@ def extract_keywords_tfidf(text, top_n=8, ngram_range=(1,2)):
         vectorizer = TfidfVectorizer(stop_words='english', ngram_range=ngram_range)
         X = vectorizer.fit_transform([text])
         feature_names = np.array(vectorizer.get_feature_names_out())
-        scores = X.toarray()[0]
+        
+        # Robust conversion to dense array to handle different SciPy/sklearn versions
+        if hasattr(X, "toarray"):
+            scores = X.toarray()[0]
+        elif hasattr(X, "todense"):
+            scores = np.asarray(X.todense())[0]
+        else:
+            scores = np.asarray(X)[0]
+            
         top_indices = scores.argsort()[::-1][:top_n]
         return [feature_names[i] for i in top_indices if scores[i] > 0]
     except Exception as e:

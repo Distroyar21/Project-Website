@@ -30,6 +30,11 @@ if (process.env.SKIP_DB === 'true') {
 
 // --- AUTH ROUTES ---
 
+app.get("/", (req, res) => {
+  res.send("AstronomyHub Backend is running 🚀");
+});
+
+
 // Signup
 app.post('/api/auth/signup', async (req, res) => {
   try {
